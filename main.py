@@ -52,8 +52,19 @@ def validate_table(table_name, df, expectations, parameters=None):
                 if col and unexpected_idx:
                     failed_rows = df.loc[unexpected_idx].copy()
                     failed_rows["failed_column"] = col
-                    expectation_type = config.to_json_dict().get("type")
+                    
+                    # Obtener el tipo de expectativa
+                    expectation_type = config.to_json_dict().get("type", "N/A")
                     failed_rows["expectation"] = expectation_type
+                    
+                    # Obtener nombre y descripción desde meta (o valores por defecto)
+                    expectation_name = config.meta.get("name", "N/A")
+                    expectation_description = config.meta.get("description", "Sin descripción")
+                    
+                    # Añadir columnas con nombre y descripción
+                    failed_rows["expectation_name"] = expectation_name
+                    failed_rows["expectation_description"] = expectation_description
+                    
                     expected_values = ""
                     if expectation_type == "expect_column_values_to_be_in_set":
                         value_set = kwargs.get("value_set", "")
@@ -74,6 +85,7 @@ def validate_table(table_name, df, expectations, parameters=None):
                     all_failed_rows.append(failed_rows)
 
 
+ 
     # Concatenar todas las filas que fallan
     if all_failed_rows:
         failed_df = pd.concat(all_failed_rows).drop_duplicates()
